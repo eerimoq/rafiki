@@ -6,3 +6,5 @@
 export RAFIKI_ROOT=$(readlink -f .)
 export SIMBA_ROOT=$(readlink -f simba)
 export PATH=${PATH}:$(readlink -f simba/bin)
+
+source ~/.cargo/env

@@ -31,6 +31,12 @@
 use core::fmt;
 use core::ptr;
 
+#[derive(Debug, Default)]
+pub struct Time {
+    pub seconds: i32,
+    pub nanoseconds: i32
+}
+
 pub static mut STDOUT: Stdout = Stdout {
     sem: ::sem_t {
         count: 0,
@@ -91,6 +97,22 @@ pub fn start()
 }
 
 pub fn stop() {
+}
+
+pub fn uptime() -> Result<Time, i32>
+{
+    let res;
+    let mut uptime: ::time_t = Default::default();
+
+    unsafe {
+        res = ::sys_uptime(&mut uptime);
+    }
+
+    match res {
+        0 => Ok(Time { seconds: uptime.seconds,
+                       nanoseconds: uptime.nanoseconds }),
+        _ => Err(res)
+    }
 }
 
 //pub fn set_stdout<T: ::sync::chan::Channel>(chout: &mut T)

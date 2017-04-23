@@ -52,7 +52,7 @@ include $(SIMBA_ROOT)/make/app.mk
 
 define RUST_COMPILE_template
 -include $(patsubst %.rs,$(DEPSDIR)%.o.dep,$(abspath $1))
-$(patsubst %.rs,$(OBJDIR)%.o,$(abspath $1)): $1
+$(patsubst %.rs,$(OBJDIR)%.o,$(abspath $1)): $1 $(GENDIR)/rafiki.rs $(BUILDDIR)/librafiki.rlib
 	@echo "RUSTC $1"
 	mkdir -p $(OBJDIR)$(abspath $(dir $1))
 	mkdir -p $(DEPSDIR)$(abspath $(dir $1))
@@ -70,6 +70,7 @@ $(GENDIR)/rafiki.rs:
 	    --use-core \
 	    --ctypes-prefix "::ctypes" \
 	    --no-unstable-rust \
+	    --with-derive-default \
 	    --output $(GENDIR)/rafiki.bindgen.rs \
 	    $(SIMBA_ROOT)/src/simba.h -- $(INC:%=-I%) $(CDEFS:%=-D%)
 	cat $(GENDIR)/rafiki.bindgen.rs \
@@ -77,31 +78,39 @@ $(GENDIR)/rafiki.rs:
 	| grep -v "pub type timer_t = __timer_t;" > $(GENDIR)/rafiki.rs
 	rm $(GENDIR)/rafiki.bindgen.rs
 
-$(BUILDDIR)/libcore.a:
+-include $(BUILDDIR)/core.d
+$(BUILDDIR)/libcore.rlib:
 	@echo "RUSTC libcore"
 	mkdir -p $(BUILDDIR)
 	rustc \
-	--crate-name core \
-	--crate-type lib \
-	--emit=dep-info,link \
-	-C debuginfo=2 \
-	--out-dir $(BUILDDIR) \
-	--target thumbv7em-none-eabi \
-	$(HOME)/.rustup/toolchains/nightly-*/lib/rustlib/src/rust/src/libcore/lib.rs
-	cp $(@:%.a=%.rlib) $@
+	    --crate-name core \
+	    --crate-type lib \
+	    --emit=dep-info,link \
+	    -C debuginfo=0 \
+	    -O \
+	    --out-dir $(BUILDDIR) \
+	    --target thumbv7em-none-eabi \
+	    $(HOME)/.rustup/toolchains/nightly-*/lib/rustlib/src/rust/src/libcore/lib.rs
 
-$(BUILDDIR)/librafiki.a: $(BUILDDIR)/libcore.a $(GENDIR)/rafiki.rs
+-include $(BUILDDIR)/rafiki.d
+$(BUILDDIR)/librafiki.rlib: $(BUILDDIR)/libcore.rlib $(GENDIR)/rafiki.rs
 	@echo "RUSTC librafiki"
 	mkdir -p $(BUILDDIR)
 	env BUILDDIR=$(shell readlink -f $(GENDIR)) rustc \
 	    --crate-name rafiki \
 	    --crate-type lib \
 	    --emit=dep-info,link \
-	    -C debuginfo=2 \
+	    -C debuginfo=0 \
+	    -O \
 	    --out-dir $(BUILDDIR) \
 	    --target thumbv7em-none-eabi \
 	    -L$(BUILDDIR) \
 	    $(RAFIKI_ROOT)/src/lib.rs
-	cp $(@:%.a=%.rlib) $@
 
-generate: $(BUILDDIR)/librafiki.a
+$(BUILDDIR)/libcore.a: $(BUILDDIR)/libcore.rlib
+	cp $< $@
+
+$(BUILDDIR)/librafiki.a: $(BUILDDIR)/librafiki.rlib
+	cp $< $@
+
+generate: $(BUILDDIR)/librafiki.a $(BUILDDIR)/libcore.a

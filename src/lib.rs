@@ -68,12 +68,12 @@ macro_rules! const_char_p {
 macro_rules! testcase_define {
     ($callback:ident) => (
         unsafe extern "C" fn $callback(
-            harness_p: *mut $crate::Struct_harness_t)
+            harness_p: *mut $crate::harness_t)
             -> $crate::ctypes::c_int
         {
             match concat_idents!($callback, _impl)(
                 harness_p
-                    as *mut $crate::slib::harness::Harness) {
+                    as *mut $crate::debug::harness::Harness) {
                 Ok(_) => 0,
                 _ => 1
             }
@@ -84,7 +84,7 @@ macro_rules! testcase_define {
 #[macro_export]
 macro_rules! testcase {
     ($callback:expr, $name:expr) => (
-        $crate::slib::harness::HarnessTestcase {
+        $crate::debug::harness::HarnessTestcase {
             callback: $callback,
             name_p: const_char_p!(concat!($name, "\0"))
         }
@@ -168,6 +168,7 @@ pub extern "C" fn rust_begin_unwind(args: core::fmt::Arguments,
                                     file: &'static str,
                                     line: u32) -> !
 {
+    println!("{}:{}:", file, line);
     unsafe {
         ::sys_panic(b"" as *const u8 as *const ::ctypes::c_char);
     }
