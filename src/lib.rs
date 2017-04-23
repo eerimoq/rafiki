@@ -3,6 +3,7 @@
 #![feature(concat_idents)]
 #![feature(macro_reexport)]
 #![feature(allow_internal_unstable)]
+//#![feature(alloc)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]

@@ -33,56 +33,51 @@
 
 #[macro_use] extern crate rafiki;
 
-use simba::kernel::{sys, event};
-use simba::drivers::uart;
-use simba::slib::harness;
+use rafiki::kernel::sys;
+use rafiki::sync::event;
+use rafiki::debug::harness;
 
 const EVENT_BIT_0: u32 = 0x1;
 const EVENT_BIT_1: u32 = 0x2;
 const EVENT_BIT_2: u32 = 0x4;
 
 testcase_define!(test_read_write);
-fn test_read_write_impl(_: *mut harness::Harness)
-                        -> simba::Res
+fn test_read_write_impl(_: *mut harness::Harness) -> rafiki::Res
 {
     let mut mask: u32;
-    let mut event = event::Event::new();
+    let (tx, rx) = event::new();
 
     /* Write two events. */
     mask = EVENT_BIT_1 | EVENT_BIT_0;
-    assert!(event.write(&mask) == Ok(0));
+    assert!(tx.write(mask) == Ok(4));
 
-    assert!(event.size() == Ok(1));
+    assert!(rx.size() == Ok(1));
 
     /* Read first event. */
     mask = EVENT_BIT_0;
-    assert!(event.read(&mut mask) == Ok(0));
-    assert!(mask == EVENT_BIT_0);
+    assert!(rx.read(mask) == Ok(EVENT_BIT_0));
 
     /* Read second event. */
     mask = EVENT_BIT_1 | EVENT_BIT_0;
-    assert!(event.read(&mut mask) == Ok(0));
-    assert!(mask == EVENT_BIT_1);
+    assert!(rx.read(mask) == Ok(EVENT_BIT_1));
 
     /* Write second and third events. */
     mask = EVENT_BIT_2 | EVENT_BIT_1;
-    assert!(event.write(&mask) == Ok(0));
+    assert!(tx.write(mask) == Ok(4));
 
     /* Write first event. */
     mask = EVENT_BIT_0;
-    assert!(event.write(&mask) == Ok(0));
+    assert!(tx.write(mask) == Ok(4));
 
     /* Read first and second events. */
     mask = EVENT_BIT_1 | EVENT_BIT_0;
-    assert!(event.read(&mut mask) == Ok(0));
-    assert!(mask == (EVENT_BIT_1 | EVENT_BIT_0));
+    assert!(rx.read(mask) == Ok(EVENT_BIT_1 | EVENT_BIT_0));
 
     /* Read third event. */
     mask = EVENT_BIT_2;
-    assert!(event.read(&mut mask) == Ok(0));
-    assert!(mask == EVENT_BIT_2);
+    assert!(rx.read(mask) == Ok(EVENT_BIT_2));
 
-    assert!(event.size() == Ok(0));
+    assert!(rx.size() == Ok(0));
 
     Ok(0)
 }
@@ -97,8 +92,7 @@ pub fn main()
     ];
 
     sys::start();
-    uart::init();
 
     harness.init();
-    harness.run(&mut harness_testcases);
+    harness.run(&mut harness_testcases).unwrap();
 }

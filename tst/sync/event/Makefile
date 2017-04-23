@@ -29,9 +29,17 @@
 #
 
 NAME = event_suite
+TYPE = suite
 BOARD ?= linux
 
-RUST = yes
+CDEFS += \
+	CONFIG_MINIMAL_SYSTEM=1 \
+	CONFIG_FS_CMD_THRD_LIST=1 \
+	CONFIG_HARNESS_SLEEP_MS=500 \
+	CONFIG_ASSERT=1
+
+SYNC_SRC += event.c
+ALLOC_SRC += heap.c
 
 RAFIKI_ROOT = ../../..
 include $(RAFIKI_ROOT)/make/app.mk

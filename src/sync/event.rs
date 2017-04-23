@@ -28,12 +28,89 @@
  * This file is part of the Rafiki project.
  */
 
-//use alloc::boxed::Box;
-//
-//pub struct Event {
-//    pub inner: ::Struct_event_t
-//}
-//
+//use alloc::boxed::
+use core::mem::size_of;
+
+#[derive(Debug)]
+pub struct Writer {
+    event_p: *mut ::event_t
+}
+
+#[derive(Debug)]
+pub struct Reader {
+    event_p: *mut ::event_t
+}
+
+pub fn new() -> (Writer, Reader) {
+    let mut writer: Writer = Writer { event_p: 0 as *mut ::event_t};
+    let mut reader: Reader = Reader { event_p: 0 as *mut ::event_t};
+    let buf_p;
+    let event_p: *mut ::event_t;
+
+    unsafe {
+        buf_p = ::kernel::sys::__rust_allocate(size_of::<::event_t>(), 4);
+        event_p = buf_p as *mut ::event_t;
+        ::event_init(event_p);
+    }
+
+    writer.event_p = event_p;
+    reader.event_p = event_p;
+
+    (writer, reader)
+}
+
+impl Writer {
+
+    pub fn write(&self, mask: u32) -> Result<u32, i32>
+    {
+        let res;
+
+        unsafe {
+            res = ::event_write(self.event_p,
+                                &mask as *const _ as *const i32,
+                                4);
+        }
+
+        match res {
+            4 => Ok(4),
+            _ => Err(res as i32)
+        }
+    }
+}
+
+impl Reader {
+
+    pub fn read(&self, mut mask: u32) -> Result<u32, i32>
+    {
+        let res;
+
+        unsafe {
+            res = ::event_read(self.event_p,
+                               &mut mask as *mut _ as *mut i32,
+                               4);
+        }
+
+        match res {
+            4 => Ok(mask),
+            _ => Err(res as i32)
+        }
+    }
+
+    pub fn size(&self) -> Result<u32, i32>
+    {
+        let res;
+
+        unsafe {
+            res = ::event_size(self.event_p);
+        }
+
+        match res {
+            size if res >= 0 => Ok(size as u32),
+            _ => Err(res as i32)
+        }
+    }
+}
+
 //impl Event {
 //
 //    pub fn new()
@@ -47,7 +124,7 @@
 //
 //        event
 //    }
-//    
+//
 //    pub fn write(&mut self, buf: &[u8]) -> ::Res
 //    {
 //        unsafe {
@@ -66,8 +143,6 @@
 //        }
 //    }
 //}
-
-pub type Event = ::event_t;
 
 //pub trait EventBuffer {
 //    fn buf_p(&self) -> *mut ::std::os::raw::c_void;

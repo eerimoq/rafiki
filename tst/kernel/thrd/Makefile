@@ -31,7 +31,5 @@
 NAME = thrd_suite
 BOARD ?= linux
 
-RUST = yes
-
 RAFIKI_ROOT = ../../..
 include $(RAFIKI_ROOT)/make/app.mk
