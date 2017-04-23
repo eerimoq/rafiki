@@ -1,6 +1,8 @@
 Getting Started
 ===============
 
+.. note:: Only the Arduino Due board is supported!
+
 Installation
 ------------
 

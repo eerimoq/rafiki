@@ -18,6 +18,7 @@ Project homepage: https://github.com/eerimoq/rafiki
    getting-started
    user-guide
    boards
+   examples
    license
    Forum <http://forum.simbaos.org>
 

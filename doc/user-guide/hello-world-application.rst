@@ -7,7 +7,7 @@ examplifies what an application is and how to build and run it.
 It consists of two files; ``main.rs`` and ``Makefile``.
 
 main.rs
-------
+-------
 
 :github-blob:`main.rs<examples/hello_world/main.rs>` defines the
 application entry function ``main()``.
