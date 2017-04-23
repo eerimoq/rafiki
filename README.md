@@ -1,2 +1,0 @@
-# rafiki
-Rust on Simba.
