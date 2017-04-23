@@ -4,9 +4,9 @@ Getting Started
 Installation
 ------------
 
-#. Install Rust. Change the `default toolchain` to ``nightly``. Copy
-   `default host triple` and `modify PATH variable` from the printed
-   `Current installtion options`.
+#. Install Rust. Change the ``default toolchain`` to ``nightly``. Copy
+   ``default host triple`` and ``modify PATH variable`` from the
+   printed ``Current installtion options``.
 
    .. code-block:: text
 
@@ -22,8 +22,8 @@ Installation
 
    .. code-block:: text
 
-      rustup component add rust-src
       cargo install bindgen
+      rustup component add rust-src
 
 #. Recursively clone the Rafiki repository.
 
