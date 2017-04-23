@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to Rafiki's documentation!
-=================================
+==================================
 
 `Rafiki` is `Rust` on top of `Simba`.
 
