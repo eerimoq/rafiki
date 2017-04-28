@@ -38,50 +38,46 @@ use collections::vec::Vec;
 
 #[macro_use] extern crate rafiki;
 
-use rafiki::kernel::{chan, errno, event, queue, sys, time};
+use rafiki::kernel::{errno, sys, time};
 use rafiki::kernel::chan::Channel;
-use rafiki::drivers::uart;
-use rafiki::slib::harness::Harness;
+use rafiki::sync::{chan, event, queue};
+use rafiki::debug::harness::Harness;
 
 testcase_define!(test_poll);
-fn test_poll_impl(_: *mut Harness)
-                  -> rafiki::Res
+fn test_poll_impl(_: *mut Harness) -> rafiki::Res
 {
-    let timeout = time::Time { seconds: 0, nanoseconds: 100 };
-    let mut queue = queue::Queue::new(Some(32));
-    let mut event = event::Event::new();
+    let timeout = sys::Time { seconds: 0, nanoseconds: 100 };
+    let (queue_tx, queue_rx) = queue::new(Some(32));
+    let (event_tx, event_rx) = event::new();
+    let list: chan::List();
+
+    /* Add both channels to the channel list. */
+    list.add(queue_rx.clone());
+    list.add(event_rx.clone());
 
     println!("1. Writing to the queue channel.");
-    assert!(queue.write(&[2, 1, 0]) == Ok(3));
+    assert!(queue_tx.write(&[2, 1, 0]) == Ok(3));
 
-    /* Poll the list waiting for data on any channel in the list. */
     loop {
         println!("Polling...");
 
-        let res;
-
-        {
-            let mut l: Vec<&mut Channel> = vec![&mut queue, &mut event];
-            res = chan::poll(&mut l, &Some(timeout));
-        }
-
-        match res {
+        match list.poll(&Some(timeout)) {
 
             Ok(0) => {
                 println!("2. Reading from the queue channel.");
                 let mut buf: [u8; 3] = [0; 3];
-                assert!(queue.read(&mut buf) == Ok(3));
+                assert!(queue_rx.read(&mut buf) == Ok(3));
+                assert!(buf == [2, 1, 0]);
             },
 
             Ok(1) => {
                 println!("4. Reading from the event channel.");
-                let mut mask: [u8; 4] = [0; 4];
-                assert!(event.read(&mut mask) == Ok(4));
+                assert!(event_rx.read(0x1) == Ok(0x1));
             },
 
             Err(errno::ETIMEDOUT) => {
                 println!("3. Timeout. Writing to the event channel.");
-                assert!(event.write(&[0, 0, 0, 1]) == Ok(4));
+                assert!(event_tx.write(0x1) == Ok(4));
             },
 
             _ => {

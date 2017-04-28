@@ -33,10 +33,8 @@
 
 #[macro_use] extern crate rafiki;
 
-use simba::kernel::{sys, thrd, queue};
-use simba::kernel::chan::ChanHandleTrait;
-use simba::drivers::uart;
-use simba::slib::harness::Harness;
+use rafiki::kernel::{sys, thrd, queue};
+use rafiki::debug::harness::Harness;
 use core::mem::transmute;
 
 #[derive(Debug, PartialEq)]
@@ -49,16 +47,11 @@ struct Foo {
 const STACK_SIZE: u32 = 2048;
 const PRIO: i32 = 0;
 
-static mut QUEUE: queue::Queue = queue!();
-static mut QUEUE_INBUF: [u8; 32] = [0; 32];
-
 testcase_define!(test_read_write);
-fn test_read_write_impl(_: *mut Harness)
-                        -> simba::Res
+fn test_read_write_impl(_: *mut Harness) -> rafiki::Res
 {
     let mut foo = Foo { a: 0, b: 0, c: [0; 5] };
-    let (tx, rx) = queue::Queue::init(unsafe { &mut QUEUE },
-                                      unsafe { &mut QUEUE_INBUF });
+    let (tx, rx) = queue::new();
     let tx2 = tx.clone();
 
     let child = thrd::spawn(move || {
@@ -118,8 +111,7 @@ pub fn main()
     ];
 
     sys::start();
-    uart::init();
 
     harness.init();
-    harness.run(&mut harness_testcases);
+    harness.run(&mut harness_testcases).unwrap();
 }

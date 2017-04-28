@@ -108,8 +108,38 @@ $(BUILDDIR)/liballoc.rlib: $(BUILDDIR)/libcore.rlib
 	    -L$(BUILDDIR) \
 	    $(HOME)/.rustup/toolchains/nightly-*/lib/rustlib/src/rust/src/liballoc/lib.rs
 
+-include $(BUILDDIR)/collections.d
+$(BUILDDIR)/libcollections.rlib: $(BUILDDIR)/libcore.rlib $(BUILDDIR)/libstd_unicode.rlib
+	@echo "RUSTC libcollections"
+	mkdir -p $(BUILDDIR)
+	rustc \
+	    --crate-name collections \
+	    --crate-type lib \
+	    --emit=dep-info,link \
+	    -C debuginfo=0 \
+	    -O \
+	    --out-dir $(BUILDDIR) \
+	    --target thumbv7em-none-eabi \
+	    -L$(BUILDDIR) \
+	    $(HOME)/.rustup/toolchains/nightly-*/lib/rustlib/src/rust/src/libcollections/lib.rs
+
+-include $(BUILDDIR)/std_unicode.d
+$(BUILDDIR)/libstd_unicode.rlib: $(BUILDDIR)/libcore.rlib
+	@echo "RUSTC libstd_unicode"
+	mkdir -p $(BUILDDIR)
+	rustc \
+	    --crate-name std_unicode \
+	    --crate-type lib \
+	    --emit=dep-info,link \
+	    -C debuginfo=0 \
+	    -O \
+	    --out-dir $(BUILDDIR) \
+	    --target thumbv7em-none-eabi \
+	    -L$(BUILDDIR) \
+	    $(HOME)/.rustup/toolchains/nightly-*/lib/rustlib/src/rust/src/libstd_unicode/lib.rs
+
 -include $(BUILDDIR)/rafiki.d
-$(BUILDDIR)/librafiki.rlib: $(BUILDDIR)/libcore.rlib $(BUILDDIR)/liballoc.rlib $(GENDIR)/rafiki.rs
+$(BUILDDIR)/librafiki.rlib: $(BUILDDIR)/libcore.rlib $(BUILDDIR)/liballoc.rlib $(BUILDDIR)/libcollections.rlib $(GENDIR)/rafiki.rs
 	@echo "RUSTC librafiki"
 	mkdir -p $(BUILDDIR)
 	env BUILDDIR=$(shell readlink -f $(GENDIR)) rustc \
@@ -129,7 +159,13 @@ $(BUILDDIR)/libcore.a: $(BUILDDIR)/libcore.rlib
 $(BUILDDIR)/liballoc.a: $(BUILDDIR)/liballoc.rlib
 	cp $< $@
 
+$(BUILDDIR)/libcollections.a: $(BUILDDIR)/libcollections.rlib
+	cp $< $@
+
+$(BUILDDIR)/libstd_unicode.a: $(BUILDDIR)/libstd_unicode.rlib
+	cp $< $@
+
 $(BUILDDIR)/librafiki.a: $(BUILDDIR)/librafiki.rlib
 	cp $< $@
 
-generate: $(BUILDDIR)/librafiki.a $(BUILDDIR)/libcore.a $(BUILDDIR)/liballoc.a
+generate: $(BUILDDIR)/librafiki.a $(BUILDDIR)/libcore.a $(BUILDDIR)/liballoc.a $(BUILDDIR)/libcollections.a $(BUILDDIR)/libstd_unicode.a

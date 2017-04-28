@@ -33,11 +33,10 @@
 
 #[macro_use] extern crate rafiki;
     
-use simba::boxed::Box;
+use rafiki::boxed::Box;
 
-use simba::kernel::{sys, thrd};
-use simba::drivers::uart;
-use simba::slib::harness;
+use rafiki::kernel::{sys, thrd};
+use rafiki::debug::harness;
 
 #[derive(Debug, PartialEq)]
 struct Foo {
@@ -49,8 +48,7 @@ const STACK_SIZE: u32 = 2500;
 const PRIO: i32 = 0;
 
 testcase_define!(test_spawn_join);
-fn test_spawn_join_impl(_: *mut harness::Harness)
-                        -> simba::Res
+fn test_spawn_join_impl(_: *mut harness::Harness) -> rafiki::Res
 {
     /* Spawn a child thread... */
     let child = thrd::spawn(move || {
@@ -66,8 +64,7 @@ fn test_spawn_join_impl(_: *mut harness::Harness)
 }
 
 testcase_define!(test_nested_spawn_join);
-fn test_nested_spawn_join_impl(_: *mut harness::Harness)
-                               -> simba::Res
+fn test_nested_spawn_join_impl(_: *mut harness::Harness) -> rafiki::Res
 {
     /* Spawn a child thread... */
     let child = thrd::spawn(move || {
@@ -93,8 +90,7 @@ fn test_nested_spawn_join_impl(_: *mut harness::Harness)
 }
 
 testcase_define!(test_large_closure);
-fn test_large_closure_impl(_: *mut harness::Harness)
-                           -> simba::Res
+fn test_large_closure_impl(_: *mut harness::Harness) -> rafiki::Res
 {
     let vec = vec![1, 2, 3, 4, 5, 6, 7, 8];
     let foo = Foo { a: -1, b: 2 };
@@ -126,8 +122,7 @@ pub fn main()
     ];
 
     sys::start();
-    uart::init();
 
     harness.init();
-    harness.run(&mut harness_testcases);
+    harness.run(&mut harness_testcases).unwrap();
 }

@@ -3,7 +3,8 @@
 #![feature(concat_idents)]
 #![feature(macro_reexport)]
 #![feature(allow_internal_unstable)]
-//#![feature(alloc)]
+#![feature(alloc)]
+#![feature(collections)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -176,14 +177,13 @@ pub extern "C" fn rust_begin_unwind(args: core::fmt::Arguments,
     loop {}
 }
 
-//#[macro_use]
-//#[macro_reexport(vec, format)]
-//extern crate collections as core_collections;
+#[macro_reexport(vec, format)]
+extern crate collections as core_collections;
 
-//pub use core_collections::vec;
+pub use core_collections::vec;
 
-//extern crate alloc;
-//pub use alloc::boxed;
+extern crate alloc;
+pub use alloc::boxed;
 
 pub type Res = Result<i32, i32>;
 

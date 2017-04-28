@@ -37,6 +37,7 @@ BOARD ?= linux
 
 TESTS = \
 	tst/kernel/sys \
+	tst/kernel/thrd \
 	tst/sync/event
 
 all: $(TESTS:%=%.all)
